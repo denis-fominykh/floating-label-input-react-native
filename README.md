@@ -2,9 +2,9 @@
 
 This project was bootstrapped with [React Native CLI](https://reactnative.dev/docs/environment-setup). <br />
 
-![screen](./assets/screen.gif) <br />
+Artical: ["The making of a floating-label input with React Native's Animated API"](https://goshakkk.name/floating-label-input-rn-animated/) by Gosha Arinich. <br />
 
-Artical: ["The making of a floating-label input with React Native's Animated API"](https://goshakkk.name/floating-label-input-rn-animated/) by Gosha Arinich.
+![screens](./assets/screens.gif) <br />
 
 ## Available Scripts
 
