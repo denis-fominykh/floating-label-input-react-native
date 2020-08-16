@@ -1,11 +1,14 @@
 import React, { FC, useState, useEffect } from 'react';
-import { StyleSheet, View, TextInput, Animated } from 'react-native';
+import { StyleSheet, View, TextInput, Animated, Text } from 'react-native';
 
 interface InputProps {
   value: string;
   label: string;
   onChangeText: (value: string) => void;
-  checkFunc?: (value: string) => void;
+  checkFunc?: (value: string) => boolean;
+  error?: boolean;
+  resetError?: () => void;
+  errorText?: string;
   secureTextEntry?: boolean;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters' | undefined;
 }
@@ -15,11 +18,17 @@ const Input: FC<InputProps> = ({
   label,
   onChangeText,
   checkFunc,
+  error,
+  resetError,
+  errorText,
   secureTextEntry,
   autoCapitalize,
 }) => {
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const [color, setColor] = useState<string>('#DDDAE0');
+
+  const [showErrorMessage, setShowErrorMessage] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const _animatedIsFocused = new Animated.Value(value === '' ? 0 : 1);
 
@@ -32,30 +41,71 @@ const Input: FC<InputProps> = ({
   }, [_animatedIsFocused]);
 
   useEffect(() => {
-    checkValue();
-  }, [value]);
+    error ? showError() : checkValue();
+  }, [value, error]);
+
+  const showError = (): void => {
+    setColor('#EF4747');
+
+    if (value === '') {
+      setErrorMessage('Should not be empty');
+      setShowErrorMessage(true);
+    } else {
+      if (errorText) {
+        setErrorMessage(errorText);
+        setShowErrorMessage(true);
+      }
+    }
+  };
 
   const checkValue = (): void => {
     if (checkFunc && value) {
-      const result = checkFunc(value);
-      value && result ? setColor('#449250') : setColor('#EF4747');
+      const checkResult: boolean = checkFunc(value);
+
+      if (checkResult) {
+        setColor('#449250');
+        setErrorMessage('');
+        setShowErrorMessage(false);
+      } else if (!checkResult) {
+        setColor('#EF4747');
+        setErrorMessage(`${label} is not valid!`);
+        setShowErrorMessage(true);
+      }
+    }
+
+    if (!checkFunc && !isFocused && value) {
+      setShowErrorMessage(false);
+      setColor('#DDDAE0');
     }
   };
 
   const handleFocus = (): void => {
     setIsFocused(true);
+
+    if (resetError) {
+      resetError();
+    }
+
     if (
       (!checkFunc && (value === '' || value)) ||
       (checkFunc && value === '')
     ) {
+      setShowErrorMessage(false);
       setColor('#4B00ED');
     }
   };
 
   const handleBlur = (): void => {
     setIsFocused(false);
-    if (!checkFunc || (checkFunc && value === '')) {
-      setColor('#DDDAE0');
+
+    if (!error) {
+      if (
+        (!checkFunc && (value === '' || value)) ||
+        (checkFunc && value === '')
+      ) {
+        setShowErrorMessage(false);
+        setColor('#DDDAE0');
+      }
     }
   };
 
@@ -70,7 +120,7 @@ const Input: FC<InputProps> = ({
     }),
     color: _animatedIsFocused.interpolate({
       inputRange: [0, 1],
-      outputRange: ['#575757', color],
+      outputRange: [color === '#DDDAE0' ? '#575757' : color, color],
     }),
   };
 
@@ -90,6 +140,9 @@ const Input: FC<InputProps> = ({
           autoCapitalize={autoCapitalize}
           blurOnSubmit
         />
+        {showErrorMessage ? (
+          <Text style={{ color: '#EF4747' }}>{errorMessage}</Text>
+        ) : null}
       </View>
     </View>
   );

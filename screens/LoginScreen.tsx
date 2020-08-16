@@ -10,16 +10,44 @@ interface LoginScreenProps {
 interface LoginScreenState {
   email: string;
   password: string;
+  error: {
+    loginError: boolean;
+    passwordError: boolean;
+  };
 }
 
 class LoginScreen extends Component<LoginScreenProps, LoginScreenState> {
   state = {
     email: '',
     password: '',
+    error: {
+      loginError: false,
+      passwordError: false,
+    },
   };
 
   updateState = (attribute: string, value: any): void => {
     this.setState({ [attribute]: value });
+  };
+
+  resetLoginError = (): void => {
+    this.setState((prevState) => ({
+      ...prevState,
+      error: {
+        ...prevState.error,
+        loginError: false,
+      },
+    }));
+  };
+
+  resetPasswordError = (): void => {
+    this.setState((prevState) => ({
+      ...prevState,
+      error: {
+        ...prevState.error,
+        passwordError: false,
+      },
+    }));
   };
 
   validateEmail = (email: string): boolean => {
@@ -28,7 +56,7 @@ class LoginScreen extends Component<LoginScreenProps, LoginScreenState> {
   };
 
   render(): React.ReactNode {
-    const { email, password } = this.state;
+    const { email, password, error } = this.state;
 
     return (
       <View style={styles.container}>
@@ -36,23 +64,45 @@ class LoginScreen extends Component<LoginScreenProps, LoginScreenState> {
           label="Email"
           value={email}
           autoCapitalize="none"
-          onChangeText={(value: string) => this.updateState('email', value)}
+          onChangeText={(value) => this.updateState('email', value)}
           checkFunc={this.validateEmail}
+          error={error.loginError}
+          resetError={this.resetLoginError}
+          errorText="The email address doesn't match any account "
         />
         <Input
           label="Password"
           value={password}
           autoCapitalize="none"
           secureTextEntry={true}
-          onChangeText={(value: string) => this.updateState('password', value)}
+          onChangeText={(value) => this.updateState('password', value)}
+          error={error.passwordError}
+          resetError={this.resetPasswordError}
+          errorText="Incorrect password"
         />
         <View style={styles.buttonContainer}>
           <Button
-            color="#FF0000"
-            title="Console"
+            title="Submit"
             onPress={() => {
-              console.log('email:', this.state.email);
-              console.log('password:', this.state.password);
+              this.setState({
+                error: {
+                  loginError: false,
+                  passwordError: false,
+                },
+              });
+              Keyboard.dismiss();
+            }}
+          />
+          <Button
+            color="#FF0000"
+            title="Submit with Error"
+            onPress={() => {
+              this.setState({
+                error: {
+                  loginError: true,
+                  passwordError: true,
+                },
+              });
               Keyboard.dismiss();
             }}
           />
